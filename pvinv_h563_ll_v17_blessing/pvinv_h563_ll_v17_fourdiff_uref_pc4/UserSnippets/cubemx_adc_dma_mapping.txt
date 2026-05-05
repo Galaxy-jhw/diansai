@@ -1,0 +1,25 @@
+Recommended CubeMX mapping for V17
+==================================
+
+ADC1 Regular sequence, DMA circular, length = 3:
+  Rank1 = ADC1_IN10 Differential -> g_pvinv_adc1_raw[0] -> default Ud
+  Rank2 = ADC1_IN12 Differential -> g_pvinv_adc1_raw[1] -> default Id
+  Rank3 = ADC1_IN4  Single-ended  -> g_pvinv_adc1_raw[2] -> default uREF, PC4
+
+ADC2 Regular sequence, DMA circular, length = 2:
+  Rank1 = ADC2_IN1  Differential -> g_pvinv_adc2_raw[0] -> default iF
+  Rank2 = ADC2_IN18 Differential -> g_pvinv_adc2_raw[1] -> default uo
+
+Default source mapping in pvinv_h563_ll.h:
+  PVINV_SRC_UD   = PVINV_ADC_SRC_ADC1_IN10_DIFF
+  PVINV_SRC_ID   = PVINV_ADC_SRC_ADC1_IN12_DIFF
+  PVINV_SRC_UREF = PVINV_ADC_SRC_ADC1_IN4_SINGLE
+  PVINV_SRC_IFB  = PVINV_ADC_SRC_ADC2_IN1_DIFF
+  PVINV_SRC_UO   = PVINV_ADC_SRC_ADC2_IN18_DIFF
+
+If you change ADC Rank order in CubeMX, update these macros only:
+  PVINV_ADC1_IDX_IN10
+  PVINV_ADC1_IDX_IN12
+  PVINV_ADC1_IDX_IN4
+  PVINV_ADC2_IDX_IN1
+  PVINV_ADC2_IDX_IN18
