@@ -1,0 +1,28 @@
+CubeMX推荐配置，必须核对：
+
+ADC1:
+- Scan Conversion Mode: Enabled
+- Number Of Conversion: 5
+- Continuous Conversion Mode: Disabled
+- Discontinuous Conversion Mode: Disabled
+- DMA Continuous Requests: Enabled
+- EOC Selection: End of sequence
+- External Trigger: TIM8 TRGO 或 TIM8 TRGO2
+- Trigger Edge: Rising Edge
+
+Regular Rank顺序必须是：
+1. PA2 / ADC1_IN14 -> Ud   -> g_pvinv_adc_raw[0]
+2. PA3 / ADC1_IN15 -> Id   -> g_pvinv_adc_raw[1]
+3. PA4 / ADC1_IN18 -> uREF -> g_pvinv_adc_raw[2]
+4. PA5 / ADC1_IN19 -> iF   -> g_pvinv_adc_raw[3]
+5. PA6 / ADC1_IN3  -> uo   -> g_pvinv_adc_raw[4]
+
+DMA:
+- Direction: Peripheral to Memory
+- Mode: Circular
+- Peripheral Increment: Disabled
+- Memory Increment: Enabled
+- Peripheral Data Width: Half Word
+- Memory Data Width: Half Word
+- Priority: High 或 Very High
+- DMA interrupt: Enabled
