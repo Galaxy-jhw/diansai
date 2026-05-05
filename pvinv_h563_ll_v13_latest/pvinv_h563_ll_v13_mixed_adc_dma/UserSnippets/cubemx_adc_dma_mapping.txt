@@ -1,0 +1,59 @@
+V13推荐CubeMX配置
+==================
+
+1. ADC1 Regular Conversion
+--------------------------
+Number of Conversion = 2
+Rank1 = ADC1_IN10 Differential -> g_pvinv_adc1_raw[0]
+Rank2 = ADC1_IN12 Differential -> g_pvinv_adc1_raw[1]
+DMA = Circular, Peripheral to Memory, HalfWord -> HalfWord, Memory Increment Enabled
+
+对应代码宏：
+#define PVINV_ADC1_IDX_IN10_DIFF 0u
+#define PVINV_ADC1_IDX_IN12_DIFF 1u
+
+2. ADC2 Regular Conversion
+--------------------------
+Number of Conversion = 2
+Rank1 = ADC2_IN1  Differential -> g_pvinv_adc2_raw[0]
+Rank2 = ADC2_IN18 Single-ended -> g_pvinv_adc2_raw[1]
+DMA = Circular, Peripheral to Memory, HalfWord -> HalfWord, Memory Increment Enabled
+
+对应代码宏：
+#define PVINV_ADC2_IDX_IN1_DIFF      0u
+#define PVINV_ADC2_IDX_IN18_SINGLE   1u
+
+3. 默认物理量映射
+-----------------
+#define PVINV_SRC_UD    PVINV_ADC_SRC_ADC1_IN10_DIFF
+#define PVINV_SRC_ID    PVINV_ADC_SRC_ADC1_IN12_DIFF
+#define PVINV_SRC_UREF  PVINV_ADC_SRC_ADC2_IN18_SINGLE
+#define PVINV_SRC_IFB   PVINV_ADC_SRC_ADC2_IN1_DIFF
+#define PVINV_SRC_UO    PVINV_ADC_SRC_NONE
+
+如果你的最终硬件接线不同，只改PVINV_SRC_xxx宏，不改控制算法主体。
+
+4. uREF单端输入注意
+-------------------
+信号发生器不能直接输出负电压到STM32 ADC。
+推荐：1.65V直流偏置，正弦幅值不超过约1.5V，使ADC引脚电压始终在0~3.3V。
+代码中用PVINV_UREF_ZERO_VOLT扣除直流偏置。
+
+5. DMA通道分配
+--------------
+你的旧工程LPUART已经使用GPDMA1 Channel0/1。
+ADC1/ADC2 DMA请让CubeMX分配新的通道，例如：
+GPDMA1 Channel2 -> ADC1
+GPDMA1 Channel3 -> ADC2
+最终以CubeMX生成结果为准。
+
+6. 控制节拍
+-----------
+ADC1 DMA完成 -> PVINV_LL_OnAdc1DmaCompleteIrq()
+ADC2 DMA完成 -> PVINV_LL_OnAdc2DmaCompleteIrq()
+两者都完成一轮后，模块自动执行一次PVINV_LL_ControlISR()。
+
+7. main.c必须删除旧DMA测试代码
+-----------------------------
+while(1)中不能再反复Disable/Enable任何GPDMA通道。
+最终while(1)只做OLED、串口、按键等低速任务。
