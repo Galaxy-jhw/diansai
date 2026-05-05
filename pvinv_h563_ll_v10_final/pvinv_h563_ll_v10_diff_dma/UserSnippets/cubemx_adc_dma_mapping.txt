@@ -1,0 +1,43 @@
+V10推荐CubeMX配置要点：
+
+1. ADC差分通道
+   ADC1 Regular Rank包含：ADC1_IN10 Differential、ADC1_IN12 Differential。
+   ADC2 Regular Rank包含：ADC2_IN1 Differential、ADC2_IN18 Differential。
+
+2. 默认DMA数组顺序
+   ADC1 Rank1 = ADC1_IN10 Differential -> g_pvinv_adc1_raw[0]
+   ADC1 Rank2 = ADC1_IN12 Differential -> g_pvinv_adc1_raw[1]
+   ADC2 Rank1 = ADC2_IN1  Differential -> g_pvinv_adc2_raw[0]
+   ADC2 Rank2 = ADC2_IN18 Differential -> g_pvinv_adc2_raw[1]
+
+3. 如果Rank顺序改变，只改pvinv_h563_ll.h中的：
+   PVINV_ADC1_IDX_IN10
+   PVINV_ADC1_IDX_IN12
+   PVINV_ADC2_IDX_IN1
+   PVINV_ADC2_IDX_IN18
+
+4. 默认物理量映射
+   PVINV_SRC_UD   = ADC1_IN10
+   PVINV_SRC_ID   = ADC1_IN12
+   PVINV_SRC_UREF = ADC2_IN1
+   PVINV_SRC_IFB  = ADC2_IN18
+   PVINV_SRC_UO   = NONE
+
+5. 如果接线不同，只改：
+   PVINV_SRC_UD / PVINV_SRC_ID / PVINV_SRC_UREF / PVINV_SRC_IFB / PVINV_SRC_UO
+
+6. GPDMA
+   不要使用已给LPUART占用的Channel0/Channel1。
+   推荐让CubeMX给ADC1/ADC2分配新的GPDMA通道，如Channel2/Channel3。
+   DMA完成TC中断里分别调用：
+      PVINV_LL_OnAdc1DmaCompleteIrq();
+      PVINV_LL_OnAdc2DmaCompleteIrq();
+
+7. V10锁存策略
+   GPDMA直接写g_pvinv_adc1_raw/g_pvinv_adc2_raw。
+   DMA完成Hook立即锁存到内部快照。
+   控制ISR只读取快照，避免DMA覆盖导致半新半旧数据。
+
+8. 电流采样模型
+   Id和iF使用微小采样电阻模型：I = Vadc_diff / (Rshunt * TotalGain)。
+   必须实测或计算：PVINV_ID_SHUNT_R_OHM、PVINV_ID_TOTAL_GAIN、PVINV_IFB_SHUNT_R_OHM、PVINV_IFB_TOTAL_GAIN。
